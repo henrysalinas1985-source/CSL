@@ -116,6 +116,13 @@ const filterUbicacion = document.getElementById('filter-ubicacion');
 const fileInput = document.getElementById('file-input');
 const attachBtn = document.getElementById('attach-btn');
 const certificadoInput = document.getElementById('certificado');
+const removeCertBtn = document.getElementById('remove-cert-btn');
+
+function updateRemoveBtnVisibility() {
+    if (removeCertBtn) {
+        removeCertBtn.style.display = certificadoInput.value ? 'flex' : 'none';
+    }
+}
 
 if (attachBtn) {
     attachBtn.onclick = () => fileInput.click();
@@ -123,7 +130,16 @@ if (attachBtn) {
         const file = e.target.files[0];
         if (file) {
             certificadoInput.value = file.name;
+            updateRemoveBtnVisibility();
         }
+    };
+}
+
+if (removeCertBtn) {
+    removeCertBtn.onclick = () => {
+        certificadoInput.value = '';
+        fileInput.value = '';
+        updateRemoveBtnVisibility();
     };
 }
 
@@ -245,6 +261,7 @@ function renderList() {
                 document.getElementById('calibracion').value = item.calibracion || '';
                 document.getElementById('vencimiento').value = item.vencimiento || '';
                 document.getElementById('certificado').value = item.certificado || '';
+                updateRemoveBtnVisibility();
                 modalOverlay.style.display = 'flex';
             }
         };
@@ -270,6 +287,7 @@ addBtn.onclick = () => {
     editingId = null;
     modalTitle.textContent = 'Agregar Nuevo Equipo';
     form.reset();
+    updateRemoveBtnVisibility();
     modalOverlay.style.display = 'flex';
 }
 cancelBtn.onclick = () => modalOverlay.style.display = 'none';
