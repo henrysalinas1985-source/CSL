@@ -15,6 +15,7 @@ const INITIAL_DATA = [
     { "aparato": "Balanza_406_CAM P-1001_SN 3872", "equipo": "", "serie": "3872", "ubicacion": "Barrio Parque - 406", "calibracion": "14/04/2025", "vencimiento": "", "id": 13 },
     { "aparato": "Balanza_Enfermería BP_CAM P-1003_SN 1587", "equipo": "", "serie": "1587", "ubicacion": "Barrio Parque - Enfermería 2do piso", "calibracion": "08/04/2025", "vencimiento": "", "id": 14 },
     { "aparato": "Balanza_Lab BP_CAM P-1003_SN 2547", "equipo": "", "serie": "2547", "ubicacion": "Barrio Parque - Lab 2do piso", "calibracion": "08/04/2025", "vencimiento": "", "id": 15 },
+    { "aparato": "Balanza de lactantes CAM SN 64413", "equipo": "", "serie": "Quilmes", "ubicacion": "Quilmes", "calibracion": "03/12/2024", "vencimiento": "", "id": 16 },
     { "aparato": "Centrífuga_SN 24622_MP", "equipo": "", "serie": "24622", "ubicacion": "Barrio Parque - Laboratorio 2do piso", "calibracion": "", "vencimiento": "", "id": 17 },
     { "aparato": "Centrífuga_SN 24622_SE", "equipo": "", "serie": "24622", "ubicacion": "Barrio Parque - Laboratorio 2do piso", "calibracion": "20/09/2023", "vencimiento": "", "id": 18 },
     { "aparato": "Desfibrilador Mindray BeneHeart D3_SN EZ-37114186 MP", "equipo": "", "serie": "EZ-37114186", "ubicacion": "Barrio Parque - Enfermería 2do piso", "calibracion": "30/07/2025", "vencimiento": "", "id": 19 },
@@ -51,7 +52,7 @@ const INITIAL_DATA = [
     { "aparato": "Tensiómetro 01 de mano ", "equipo": "", "serie": "Hand011122", "ubicacion": "Barrio Parque - Neceser Rojo para Emergencias BP", "calibracion": "18/04/2025", "vencimiento": "", "id": 51 },
     { "aparato": "Tensiómetro 02 de mano ", "equipo": "", "serie": "Aurinco011122", "ubicacion": "Barrio Parque - Neceser Rojo Nro. 2", "calibracion": "18/04/2025", "vencimiento": "", "id": 52 },
     { "aparato": "Tensiómetro 03 de mano ", "equipo": "", "serie": "no tiene", "ubicacion": "Barrio Parque - Neceser Rojo Nro. 1", "calibracion": "18/04/2025", "vencimiento": "", "id": 53 },
-    { "aparate": "Tensiómetro Heine Gamma XXL SN 1086928_Cons. 301", "equipo": "", "serie": "1086928", "ubicacion": "Barrio Parque - 301", "calibracion": "18/04/2025", "vencimiento": "", "id": 54 },
+    { "aparato": "Tensiómetro Heine Gamma XXL SN 1086928_Cons. 301", "equipo": "", "serie": "1086928", "ubicacion": "Barrio Parque - 301", "calibracion": "18/04/2025", "vencimiento": "", "id": 54 },
     { "aparato": "Tensiómetro Heine Gamma XXL SN 19073_Cons. 302", "equipo": "", "serie": "19073", "ubicacion": "Barrio Parque - 302", "calibracion": "18/04/2025", "vencimiento": "", "id": 55 },
     { "aparato": "Tensiómetro Welch Allyn 767 SN 20050508455_Cons. 307", "equipo": "", "serie": "20050508455", "ubicacion": "Barrio Parque - 307", "calibracion": "18/04/2025", "vencimiento": "", "id": 56 },
     { "aparato": "Tensiómetro Welch Allyn 767 SN 200421120215_Cons. 308", "equipo": "", "serie": "200421120215", "ubicacion": "Barrio Parque - 308", "calibracion": "18/04/2025", "vencimiento": "", "id": 57 },
@@ -67,7 +68,6 @@ const INITIAL_DATA = [
 const api = {
     getData: () => {
         const stored = localStorage.getItem(STORAGE_KEY);
-        // Sync Initial Data if version mismatch or empty
         if (!stored || JSON.parse(stored).length < 60) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATA));
             return INITIAL_DATA;
@@ -84,6 +84,14 @@ const api = {
         api.saveData(data);
         return newItem;
     },
+    updateItem: (id, updatedItem) => {
+        const data = api.getData();
+        const index = data.findIndex(item => item.id === id);
+        if (index !== -1) {
+            data[index] = { ...updatedItem, id };
+            api.saveData(data);
+        }
+    },
     deleteItem: (id) => {
         const data = api.getData();
         const filtered = data.filter(item => item.id !== id);
@@ -96,10 +104,28 @@ const addBtn = document.getElementById('add-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 const modalOverlay = document.getElementById('modal-overlay');
 const form = document.getElementById('equipment-form');
+const modalTitle = document.querySelector('#modal-overlay h2');
+const totalCountElement = document.getElementById('total-count');
 
-// Filter elements
+let editingId = null;
+
 const searchAparato = document.getElementById('search-aparato');
 const filterUbicacion = document.getElementById('filter-ubicacion');
+
+// Folder/File picking simulation
+const fileInput = document.getElementById('file-input');
+const attachBtn = document.getElementById('attach-btn');
+const certificadoInput = document.getElementById('certificado');
+
+if (attachBtn) {
+    attachBtn.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            certificadoInput.value = file.name;
+        }
+    };
+}
 
 // Helper to calculate expiration (1 year after calibration)
 function calculateExpiration(dateStr) {
@@ -125,7 +151,6 @@ function updateLocationFilter() {
     const data = api.getData();
     const locations = [...new Set(data.map(item => item.ubicacion))].sort();
 
-    // Preserve "Todas"
     filterUbicacion.innerHTML = '<option value="">TODAS LAS UBICACIONES</option>';
     locations.forEach(loc => {
         if (!loc) return;
@@ -153,16 +178,18 @@ function renderList() {
         return matchesSearch && matchesLocation;
     });
 
+    // Update total count
+    totalCountElement.textContent = filteredData.length;
+
     if (filteredData.length === 0) {
-        listElement.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--text-muted);">No se encontraron equipos.</td></tr>';
+        listElement.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">No se encontraron equipos.</td></tr>';
         return;
     }
 
-    filteredData.forEach(item => {
+    filteredData.forEach((item, index) => {
         const expDate = calculateExpiration(item.calibracion);
         const expStr = expDate ? formatDate(expDate) : (item.vencimiento || 'N/A');
 
-        // Alert logic
         let rowClass = '';
         let badgeClass = '';
 
@@ -179,20 +206,51 @@ function renderList() {
         const tr = document.createElement('tr');
         if (rowClass) tr.className = rowClass;
 
+        const certLink = item.certificado
+            ? `<a href="certificados/${item.certificado}" target="_blank" class="btn-success-outline">ABRIR</a>`
+            : '<span style="color: var(--text-muted); font-size: 0.8rem;">-</span>';
+
         tr.innerHTML = `
+            <td style="color: var(--text-muted); font-weight: 600;">${index + 1}</td>
             <td>${item.aparato}</td>
             <td>${item.equipo || '-'}</td>
             <td>${item.serie}</td>
             <td>${item.ubicacion}</td>
             <td>${item.calibracion || 'Pendiente'}</td>
             <td><span class="badge ${badgeClass}">${expStr}</span></td>
+            <td>${certLink}</td>
             <td>
-                <button class="btn-danger delete-btn" data-id="${item.id}">ELIMINAR</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-primary edit-btn" data-id="${item.id}" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">EDITAR</button>
+                    <button class="btn-danger delete-btn" data-id="${item.id}" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">ELIMINAR</button>
+                </div>
             </td>
         `;
         listElement.appendChild(tr);
     });
 
+    // Bind Edit buttons
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.onclick = () => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            const data = api.getData();
+            const item = data.find(i => i.id === id);
+            if (item) {
+                editingId = id;
+                modalTitle.textContent = 'Editar Equipo';
+                document.getElementById('aparato').value = item.aparato;
+                document.getElementById('equipo').value = item.equipo || '';
+                document.getElementById('serie').value = item.serie;
+                document.getElementById('ubicacion').value = item.ubicacion;
+                document.getElementById('calibracion').value = item.calibracion || '';
+                document.getElementById('vencimiento').value = item.vencimiento || '';
+                document.getElementById('certificado').value = item.certificado || '';
+                modalOverlay.style.display = 'flex';
+            }
+        };
+    });
+
+    // Bind Delete buttons
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = () => {
             const id = parseInt(btn.getAttribute('data-id'));
@@ -209,6 +267,8 @@ searchAparato.oninput = renderList;
 filterUbicacion.onchange = renderList;
 
 addBtn.onclick = () => {
+    editingId = null;
+    modalTitle.textContent = 'Agregar Nuevo Equipo';
     form.reset();
     modalOverlay.style.display = 'flex';
 }
@@ -220,15 +280,22 @@ window.onclick = (e) => {
 
 form.onsubmit = (e) => {
     e.preventDefault();
-    const newItem = {
+    const itemData = {
         aparato: document.getElementById('aparato').value,
         equipo: document.getElementById('equipo').value,
         serie: document.getElementById('serie').value,
         ubicacion: document.getElementById('ubicacion').value,
         calibracion: document.getElementById('calibracion').value,
-        vencimiento: document.getElementById('vencimiento').value
+        vencimiento: document.getElementById('vencimiento').value,
+        certificado: document.getElementById('certificado').value
     };
-    api.addItem(newItem);
+
+    if (editingId) {
+        api.updateItem(editingId, itemData);
+    } else {
+        api.addItem(itemData);
+    }
+
     modalOverlay.style.display = 'none';
     updateLocationFilter();
     renderList();

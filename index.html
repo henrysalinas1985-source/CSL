@@ -16,8 +16,12 @@
         <header>
             <h1>Listado de Equipos</h1>
             <button id="add-btn" class="btn-primary">
-                <span>+</span> AGREGAR EQUIPO
+                + AGREGAR EQUIPO
             </button>
+            <div id="total-badge" class="badge badge-warning"
+                style="margin-left: 1rem; font-size: 1rem; padding: 0.5rem 1rem;">
+                TOTAL: <span id="total-count">0</span>
+            </div>
         </header>
 
         <div class="filter-section glass-card">
@@ -34,56 +38,75 @@
         </div>
 
         <main class="glass-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th>APARATO</th>
-                        <th>EQUIPO</th>
-                        <th>N° SERIE</th>
-                        <th>UBICACIÓN EN EL CENTRO</th>
-                        <th>CALIBRACIÓN 2025</th>
-                        <th>VENCIMIENTO</th>
-                        <th>ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody id="equipment-list">
-                    <!-- Rows will be injected by JavaScript -->
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>APARATO</th>
+                            <th>EQUIPO</th>
+                            <th>N° SERIE</th>
+                            <th>UBICACIÓN EN EL CENTRO</th>
+                            <th>CALIBRACIÓN 2025</th>
+                            <th>VENCIMIENTO</th>
+                            <th>CERTIFICADO</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipment-list">
+                        <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
 
     <!-- Modal for Adding/Editing -->
     <div id="modal-overlay">
         <div class="modal glass-card">
-            <h2 style="margin-bottom: 1.5rem;">Agregar Nuevo Equipo</h2>
+            <h2>Agregar Nuevo Equipo</h2>
             <form id="equipment-form">
                 <div class="form-group">
-                    <label>APARATO</label>
-                    <input type="text" id="aparato" required>
+                    <label for="aparato">APARATO</label>
+                    <input type="text" id="aparato" required placeholder="Ej: Altímetro">
                 </div>
                 <div class="form-group">
-                    <label>EQUIPO</label>
+                    <label for="equipo">EQUIPO</label>
                     <input type="text" id="equipo" placeholder="Dejar vacío si no aplica">
                 </div>
                 <div class="form-group">
-                    <label>N° SERIE</label>
+                    <label for="serie">N° SERIE</label>
                     <input type="text" id="serie" required>
                 </div>
                 <div class="form-group">
-                    <label>UBICACIÓN EN EL CENTRO</label>
+                    <label for="ubicacion">UBICACIÓN EN EL CENTRO</label>
                     <input type="text" id="ubicacion" required>
                 </div>
                 <div class="form-group">
-                    <label>CALIBRACIÓN 2025</label>
-                    <input type="date" id="calibracion">
+                    <label for="calibracion">CALIBRACIÓN 2025</label>
+                    <input type="text" id="calibracion" placeholder="dd/mm/aaaa">
                 </div>
                 <div class="form-group">
-                    <label>VENCIMIENTO CALIBRACIÓN</label>
-                    <input type="date" id="vencimiento">
+                    <label for="vencimiento">VENCIMIENTO (MANUAL)</label>
+                    <input type="text" id="vencimiento" placeholder="dd/mm/aaaa (opcional)">
                 </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button type="submit" class="btn-primary" style="flex: 1;">GUARDAR</button>
+                <div class="form-group">
+                    <label>CERTIFICADO DE CALIBRACIÓN (PDF)</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="file" id="file-input" style="display: none;" accept=".pdf">
+                        <button type="button" id="attach-btn" class="btn-success-outline"
+                            style="flex: 1; padding: 0.8rem;">
+                            ADJUNTAR CERTIFICADO
+                        </button>
+                        <input type="text" id="certificado" readonly placeholder="Ningún archivo seleccionado"
+                            style="flex: 2; font-style: italic; color: var(--text-muted);">
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.5rem;">
+                        ⚠️ Luego de adjuntar, recuerda copiar el archivo físicamente a la carpeta 'certificados'.
+                    </small>
+                </div>
+                <div class="controls" style="margin-top: 2rem;">
+                    <button type="submit" class="btn-primary" style="flex: 2;">GUARDAR EQUIPO</button>
                     <button type="button" id="cancel-btn" class="btn-danger" style="flex: 1;">CANCELAR</button>
                 </div>
             </form>
