@@ -9,15 +9,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
     <div class="container">
         <header>
             <h1>Listado de Equipos</h1>
-            <button id="add-btn" class="btn-primary">
-                + AGREGAR EQUIPO
-            </button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="add-btn" class="btn-primary">
+                    + AGREGAR EQUIPO
+                </button>
+                <button id="pdf-btn" class="btn-secondary" style="background: #607d8b; color: white;">
+                    📄 DESCARGAR PDF
+                </button>
+            </div>
             <div id="total-badge" class="badge badge-warning"
                 style="margin-left: 1rem; font-size: 1rem; padding: 0.5rem 1rem;">
                 TOTAL: <span id="total-count">0</span>

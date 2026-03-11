@@ -319,6 +319,82 @@ form.onsubmit = (e) => {
     renderList();
 };
 
+// PDF Export Function - Professional Version
+function exportToPDF() {
+    const data = api.getData();
+    const searchText = document.getElementById('search-aparato').value.toLowerCase();
+    const locationValue = document.getElementById('filter-ubicacion').value;
+
+    const filteredData = data.filter(item => {
+        const matchesSearch = item.aparato.toLowerCase().includes(searchText);
+        const matchesLocation = !locationValue || item.ubicacion === locationValue;
+        return matchesSearch && matchesLocation;
+    });
+
+    // Create a hidden container for the PDF content
+    const printContainer = document.createElement('div');
+    printContainer.style.padding = '20px';
+    printContainer.style.fontFamily = "'Inter', sans-serif";
+    printContainer.style.background = 'white';
+    printContainer.style.color = 'black';
+
+    const date = new Date().toLocaleDateString();
+
+    printContainer.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 24px;">Investigación CSL - Inventario de Equipos</h1>
+            <div style="text-align: right; font-size: 12px; color: #666;">
+                <p>Fecha de Reporte: ${date}</p>
+                <p>Total Equipos: ${filteredData.length}</p>
+            </div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+                <tr style="background: #f4f4f4;">
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">#</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">APARATO</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">N° SERIE</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">UBICACIÓN</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">CALIBRACIÓN</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">VENCIMIENTO</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filteredData.map((item, index) => {
+        const expDate = calculateExpiration(item.calibracion);
+        const expStr = expDate ? formatDate(expDate) : (item.vencimiento || 'N/A');
+        return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 6px; width: 30px;">${index + 1}</td>
+                            <td style="border: 1px solid #ddd; padding: 6px; font-weight: 600;">${item.aparato}</td>
+                            <td style="border: 1px solid #ddd; padding: 6px;">${item.serie}</td>
+                            <td style="border: 1px solid #ddd; padding: 6px;">${item.ubicacion}</td>
+                            <td style="border: 1px solid #ddd; padding: 6px;">${item.calibracion || 'Pendiente'}</td>
+                            <td style="border: 1px solid #ddd; padding: 6px;">${expStr}</td>
+                        </tr>
+                    `;
+    }).join('')}
+            </tbody>
+        </table>
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; font-size: 9px; color: #999; text-align: center;">
+            <p>Sistema de Gestión de Laboratorio - Reporte Inteligente de Equipamiento</p>
+        </div>
+    `;
+
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Inventario_CSL_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(printContainer).save();
+}
+
+// Bind PDF Button
+document.getElementById('pdf-btn').onclick = exportToPDF;
+
 // Initial Load
 updateLocationFilter();
 renderList();

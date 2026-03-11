@@ -144,6 +144,52 @@ tr:hover {
   font-weight: 600;
 }
 
+/* PDF/Print Styles */
+@media print {
+
+  .btn-primary,
+  #pdf-btn,
+  .filter-section,
+  .badge-warning,
+  th:last-child,
+  td:last-child {
+    display: none !important;
+  }
+
+  .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+
+  .glass-card {
+    background: white !important;
+    border: 1px solid #eee !important;
+    box-shadow: none !important;
+  }
+
+  th {
+    background: #f8f9fa !important;
+    color: #333 !important;
+    border-bottom: 2px solid #333 !important;
+  }
+
+  td {
+    border-bottom: 1px solid #eee !important;
+  }
+
+  h1 {
+    color: black !important;
+    margin-bottom: 20px !important;
+  }
+}
+
 .badge-warning {
   background: rgba(245, 158, 11, 0.2);
   color: #f59e0b;
